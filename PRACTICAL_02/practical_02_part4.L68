@@ -1,0 +1,60 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 23/01/2026 10:09:11
+
+00001000                             1      ORG     $1000
+00001000                             2  START:
+00001000                             3  
+00001000                             4      ; This code demonstrates the data movement flow for long, word, and byte lengths 
+00001000                             5      ; each block shows loading literals into registers, moving data between registers, 
+00001000                             6      ; and moving values between registers and specific memory addresses
+00001000  7064                       7      MOVE.L  #100,       D0
+00001002  223C 00000100              8      MOVE.L  #$100,      D1
+00001008  7404                       9      MOVE.L  #%100,      D2
+0000100A                            10  
+0000100A  2600                      11      MOVE.L  D0,         D3
+0000100C                            12  
+0000100C  21C1 3000                 13      MOVE.L  D1,         $3000
+00001010                            14  
+00001010  2838 3000                 15      MOVE.L  $3000,      D4
+00001014                            16  
+00001014                            17  
+00001014  303C 0032                 18      MOVE.W  #50,        D0
+00001018  323C 0064                 19      MOVE.W  #$64,       D1
+0000101C  343C 000A                 20      MOVE.W  #%1010,     D2
+00001020                            21  
+00001020  3A02                      22      MOVE.W  D2,         D5
+00001022                            23  
+00001022  31C1 3010                 24      MOVE.W  D1,         $3010
+00001026                            25  
+00001026  3C38 3010                 26      MOVE.W  $3010,      D6
+0000102A                            27  
+0000102A  31FC 0064 3020            28      MOVE.W  #100,       $3020
+00001030                            29  
+00001030  3E38 3020                 30      MOVE.W  $3020,      D7
+00001034                            31  
+00001034                            32  
+00001034  103C 000A                 33      MOVE.B  #10,        D0
+00001038  123C 000F                 34      MOVE.B  #$0F,       D1
+0000103C  143C 00F0                 35      MOVE.B  #%11110000, D2
+00001040                            36  
+00001040  1602                      37      MOVE.B  D2,         D3
+00001042                            38  
+00001042  11C1 3030                 39      MOVE.B  D1,         $3030
+00001046                            40  
+00001046  1838 3030                 41      MOVE.B  $3030,      D4
+0000104A                            42  
+0000104A  11FC 0055 3040            43      MOVE.B  #$55,       $3040
+00001050  11FC 00AA 3050            44      MOVE.B  #%10101010, $3050
+00001056                            45  
+00001056  FFFF FFFF                 46      SIMHALT
+0000105A                            47      END     START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+START               1000
