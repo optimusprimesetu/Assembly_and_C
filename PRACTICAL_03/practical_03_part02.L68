@@ -1,0 +1,22 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 27/01/2026 11:30:34
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000  45F8 4000                  3      LEA    $4000, A2      ; Point A2 to memory address $4000
+00001004  14BC 0064                  4      MOVE.B #100, (A2)     ; Move 100 (Hex $64) to address $4000
+00001008  0412 000A                  5      SUB.B  #10, (A2)      ; Subtract 10 from the value currently living at address $4000
+0000100C                             6  
+0000100C  FFFF FFFF                  7      SIMHALT
+00001010                             8  
+00001010                             9      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+START               1000

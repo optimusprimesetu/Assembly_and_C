@@ -1,0 +1,71 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 27/01/2026 11:39:47
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3      ; --- SETUP POINTERS ---
+00001000  41F9 0000105C              4      LEA    PLAYER_BASE, A0    ; A0 points to Player Data Block
+00001006  43F9 00001066              5      LEA    BOSS_BASE, A1      ; A1 points to Boss Data Block
+0000100C  45F9 00001070              6      LEA    GAME_STATE, A2     ; A2 points to General Game State
+00001012                             7  
+00001012                             8      ; --- EXAMPLE SET 1: PLAYER DATA (Using A0) ---
+00001012                             9      ; 1. Player Health (Byte) - Start at 100% ($64)
+00001012  10BC 0064                 10      MOVE.B #$64, (A0)         
+00001016                            11      
+00001016                            12      ; 2. Player Max Health (Byte) - Offset by 1
+00001016  117C 0064 0001            13      MOVE.B #$64, 1(A0)        
+0000101C                            14      
+0000101C                            15      ; 3. Player X Position (Word) - Offset by 2. Set to 500
+0000101C  317C 01F4 0002            16      MOVE.W #500, 2(A0)        
+00001022                            17      
+00001022                            18      ; 4. Player Y Position (Word) - Offset by 4. Set to 100
+00001022  317C 0064 0004            19      MOVE.W #100, 4(A0)        
+00001028                            20  
+00001028                            21      ; 5. Player Lives (Byte) - Offset by 6. Start with 3 lives.
+00001028  117C 0003 0006            22      MOVE.B #3, 6(A0)
+0000102E                            23  
+0000102E                            24      ; --- EXAMPLE SET 2: BOSS DATA (Using A1) ---
+0000102E                            25      ; 6. Boss Health (Word) - Bosses have more HP (1000 = $03E8)
+0000102E  32BC 03E8                 26      MOVE.W #1000, (A1)
+00001032                            27  
+00001032                            28      ; 7. Boss X Position (Word)
+00001032  337C 0320 0002            29      MOVE.W #800, 2(A1)
+00001038                            30  
+00001038                            31      ; 8. Boss Y Position (Word)
+00001038  337C 0064 0004            32      MOVE.W #100, 4(A1)
+0000103E                            33  
+0000103E                            34      ; 9. Boss Type/ID (Byte)
+0000103E  137C 0001 0006            35      MOVE.B #1, 6(A1)
+00001044                            36  
+00001044                            37      ; --- EXAMPLE SET 3: GLOBAL GAME STATE (Using A2) ---
+00001044                            38      ; 10. Current Score (Long Word) - Score can be huge, use .L
+00001044  24BC 00000000             39      MOVE.L #0, (A2)           ; Start score at 0
+0000104A                            40  
+0000104A                            41      ; 11. High Score (Long Word) 
+0000104A  257C 0000C350 0004        42      MOVE.L #50000, 4(A2)      ; Previous high score
+00001052                            43  
+00001052                            44      ; 12. Level Number (Byte)
+00001052  157C 0001 0008            45      MOVE.B #1, 8(A2)
+00001058                            46  
+00001058  FFFF FFFF                 47      SIMHALT
+0000105C                            48  
+0000105C                            49  ; --- MEMORY RESERVATION ---
+0000105C                            50  ; We use DS (Define Space) to reserve empty room for our variables
+0000105C                            51  PLAYER_BASE:    DS.B 10       ; Reserve 10 bytes for player
+00001066                            52  BOSS_BASE:      DS.B 10       ; Reserve 10 bytes for boss
+00001070                            53  GAME_STATE:     DS.B 20       ; Reserve 20 bytes for game state
+00001084                            54  
+00001084                            55      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BOSS_BASE           1066
+GAME_STATE          1070
+PLAYER_BASE         105C
+START               1000

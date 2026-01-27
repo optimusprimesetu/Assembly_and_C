@@ -1,0 +1,24 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 27/01/2026 11:32:03
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000  47F9 0000100E              3      LEA    HEALTH, A3     ; Load the address of the label 'HEALTH' into A3
+00001006  0413 000A                  4      SUB.B  #10, (A3)      ; Subtract 10 from the value found at that address
+0000100A                             5  
+0000100A  FFFF FFFF                  6      SIMHALT
+0000100E                             7  
+0000100E= 64                         8  HEALTH  DC.B   $64        ; Define Constant Byte: Initialize 'HEALTH' with Hex $64 (100 decimal)
+0000100F                             9  
+0000100F                            10      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+HEALTH              100E
+START               1000
