@@ -1,66 +1,55 @@
-    ORG    $1000
+ORG    $1000
 START:
     ; --- SETUP POINTERS ---
-    LEA    PLAYER_BASE, A0    ; A0 points to Player Data Block
-    LEA    BOSS_BASE, A1      ; A1 points to Boss Data Block
-    LEA    GAME_STATE, A2     ; A2 points to General Game State
+    LEA    PLAYER_BASE, A0    ; A0 -> player_t
+    LEA    BOSS_BASE, A1      ; A1 -> boss_t
+    LEA    GAME_STATE, A2     ; A2 -> game_state_t
 
-    ; --- EXAMPLE SET 1: PLAYER DATA (Using A0) ---
-    ; 1. Player Health (Byte) - Start at 100% ($64)
-    
-    MOVE.B #$64, (A0)         
-    
-    ; 2. Player Max Health (Byte) - Offset by 1
-    MOVE.B #$64, 1(A0)        
-    
-    ; 3. Player X Position (Word) - Offset by 2. Set to 500
-    MOVE.W #500, 2(A0)        
-    
-    ; 4. Player Y Position (Word) - Offset by 4. Set to 100
-    MOVE.W #100, 4(A0)        
+    ; --- PLAYER DATA ---
+    MOVE.B #$64, (A0)         ; health
+    MOVE.B #$64, 1(A0)        ; max_health
+    MOVE.W #500, 2(A0)        ; x
+    MOVE.W #100, 4(A0)        ; y
+    MOVE.B #3, 6(A0)          ; lives
 
-    ; 5. Player Lives (Byte) - Offset by 6. Start with 3 lives.
-    MOVE.B #3, 6(A0)
+    ; --- BOSS DATA ---
+    MOVE.W #1000, (A1)        ; health (Word)
+    MOVE.W #800, 2(A1)        ; x
+    MOVE.W #100, 4(A1)        ; y
+    MOVE.B #1, 6(A1)          ; boss_id
 
-    ; --- EXAMPLE SET 2: BOSS DATA (Using A1) ---
-    ; 6. Boss Health (Word) - Bosses have more HP (1000 = $03E8)
-    MOVE.W #1000, (A1)
-
-    ; 7. Boss X Position (Word)
-    MOVE.W #800, 2(A1)
-
-    ; 8. Boss Y Position (Word)
-    MOVE.W #100, 4(A1)
-
-    ; 9. Boss Type/ID (Byte)
-    MOVE.B #1, 6(A1)
-
-    ; --- EXAMPLE SET 3: GLOBAL GAME STATE (Using A2) ---
-    ; 10. Current Score (Long Word) - Score can be huge, use .L
-    MOVE.L #0, (A2)           ; Start score at 0
-
-    ; 11. High Score (Long Word) 
-    MOVE.L #50000, 4(A2)      ; Previous high score
-
-    ; 12. Level Number (Byte)
-    MOVE.B #1, 8(A2)
+    ; --- GLOBAL GAME STATE ---
+    MOVE.L #0, (A2)           ; score (Long)
+    MOVE.L #50000, 4(A2)      ; high_score (Long)
+    MOVE.B #1, 8(A2)          ; level
 
     SIMHALT
 
-; --- MEMORY RESERVATION ---
-; We use DS (Define Space) to reserve empty room for our variables
-PLAYER_BASE:    DS.B 10       ; Reserve 10 bytes for player
+; --- MEMORY RESERVATION & C-STRUCTURE DEFINITIONS ---
 
 ; typedef struct {
-;   char  health;    // offset: 0
-;   char  max_health // offset: 1
-;   short x;         // offset: 2
-;   short y          // offset: 4
-;   char lives;      // offset: 6
-; } player_t;   
+;   unsigned char health;     // offset 0 (1 byte)
+;   unsigned char max_health; // offset 1 (1 byte)
+;   short         x;          // offset 2 (2 bytes)
+;   short         y;          // offset 4 (2 bytes)
+;   unsigned char lives;      // offset 6 (1 byte)
+; } player_t;                 // total: 7 bytes
+PLAYER_BASE:    DS.B 7        
 
-BOSS_BASE:      DS.B 10       ; Reserve 10 bytes for boss
-GAME_STATE:     DS.B 20       ; Reserve 20 bytes for game state
+; typedef struct {
+;   short         health;     // offset 0 (2 bytes)
+;   short         x;          // offset 2 (2 bytes)
+;   short         y;          // offset 4 (2 bytes)
+;   unsigned char boss_id;    // offset 6 (1 byte)
+; } boss_t;                   // total: 7 bytes
+BOSS_BASE:      DS.B 7        
+
+; typedef struct {
+;   unsigned int  score;      // offset 0 (4 bytes)
+;   unsigned int  high_score; // offset 4 (4 bytes)
+;   unsigned char level;      // offset 8 (1 byte)
+; } game_state_t;             // total: 9 bytes
+GAME_STATE:     DS.B 9        
 
     END    START
 *~Font name~Courier New~

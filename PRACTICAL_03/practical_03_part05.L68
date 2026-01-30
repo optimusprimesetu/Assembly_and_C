@@ -1,0 +1,40 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 30/01/2026 09:44:52
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  227C 00001020              4      MOVEA.L #ACHIEVEMENT_POINTS, A1
+00001006  7000                       5      MOVE.L  #0, D0
+00001008                             6      
+00001008  2419                       7      MOVE.L  (A1)+, D2
+0000100A  D082                       8      ADD.L   D2, D0
+0000100C                             9      
+0000100C  2419                      10      MOVE.L  (A1)+, D2
+0000100E  D082                      11      ADD.L   D2, D0
+00001010                            12      
+00001010  2419                      13      MOVE.L  (A1)+, D2
+00001012  D082                      14      ADD.L   D2, D0
+00001014                            15      
+00001014  2419                      16      MOVE.L  (A1)+, D2
+00001016  D082                      17      ADD.L   D2, D0
+00001018                            18      
+00001018  2419                      19      MOVE.L  (A1)+, D2
+0000101A  D082                      20      ADD.L   D2, D0
+0000101C                            21  
+0000101C  FFFF FFFF                 22      SIMHALT
+00001020                            23  
+00001020= 00000005 0000000A ...     24  ACHIEVEMENT_POINTS: DC.L  5, 10, 15, 20, 30
+00001034                            25  
+00001034                            26      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ACHIEVEMENT_POINTS  1020
+START               1000
