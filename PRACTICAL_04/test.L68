@@ -1,0 +1,267 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 2/6/2026 10:09:05 AM
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3      ; =============================================================
+00001000                             4      ; 1. FILE LOADING SECTION
+00001000                             5      ; =============================================================
+00001000  7033                       6      MOVE.L #51, D0        ; OPEN FILE
+00001002  43F9 000011A8              7      LEA    FILENAME, A1   
+00001008  4E4F                       8      TRAP   #15            ; D1 holds File ID
+0000100A                             9  
+0000100A  7035                      10      MOVE.L #53, D0        ; READ FILE
+0000100C  243C 00000400             11      MOVE.L #1024, D2      ; Read 1KB
+00001012  43F9 00001231             12      LEA    FILE_BUFFER, A1 
+00001018  4E4F                      13      TRAP   #15            
+0000101A                            14      
+0000101A  B4BC 00000000             15      CMP.L  #0, D2         ; If nothing read, exit
+00001020  6F00 0178                 16      BLE    ERROR_EXIT
+00001024                            17  
+00001024                            18      ; =============================================================
+00001024                            19      ; 2. WORD SELECTION (PARSING)
+00001024                            20      ; =============================================================
+00001024                            21      ; D5 = Which word to pick (0 = 1st, 1 = 2nd, etc.)
+00001024  3A3C 0001                 22      MOVE.W #1, D5         ; <--- CHANGE THIS NUMBER TO PICK DIFFERENT WORDS
+00001028                            23      
+00001028  41F9 00001231             24      LEA    FILE_BUFFER, A0
+0000102E  4246                      25      CLR.W  D6             ; Current Word Index
+00001030                            26  
+00001030                            27  FIND_WORD_LOOP:
+00001030  BC45                      28      CMP.W  D5, D6         ; Are we at the target word?
+00001032  6700 0012                 29      BEQ    COPY_START
+00001036                            30  
+00001036                            31  SKIP_WORD:
+00001036  1018                      32      MOVE.B (A0)+, D0      ; Read char
+00001038  6700 0160                 33      BEQ    ERROR_EXIT     ; End of file reached?
+0000103C  B03C 000A                 34      CMP.B  #10, D0        ; Is it Line Feed (\n)?
+00001040  66F4                      35      BNE    SKIP_WORD      ; If not, keep skipping
+00001042  5246                      36      ADDQ.W #1, D6         ; Found newline, increment index
+00001044  60EA                      37      BRA    FIND_WORD_LOOP
+00001046                            38  
+00001046                            39  COPY_START:
+00001046  43F9 00001631             40      LEA    SECRET_BUF, A1
+0000104C  4242                      41      CLR.W  D2             ; Length counter
+0000104E                            42  
+0000104E                            43  COPY_CHAR:
+0000104E  1018                      44      MOVE.B (A0)+, D0
+00001050  6700 0018                 45      BEQ    FINISH_COPY    ; End of buffer
+00001054  B03C 000D                 46      CMP.B  #13, D0        ; CR? Stop.
+00001058  6700 0010                 47      BEQ    FINISH_COPY
+0000105C  B03C 000A                 48      CMP.B  #10, D0        ; LF? Stop.
+00001060  6700 0008                 49      BEQ    FINISH_COPY
+00001064                            50      
+00001064  12C0                      51      MOVE.B D0, (A1)+      ; Copy valid char
+00001066  5242                      52      ADDQ.W #1, D2         ; Length++
+00001068  60E4                      53      BRA    COPY_CHAR
+0000106A                            54  
+0000106A                            55  FINISH_COPY:
+0000106A  12BC 0000                 56      MOVE.B #0, (A1)       ; Null terminate
+0000106E  33C2 0000122E             57      MOVE.W D2, WORD_LEN   ; Save length
+00001074                            58      
+00001074                            59      ; Safety check: Did we pick an empty line?
+00001074  4A42                      60      TST.W  D2
+00001076  6700 0122                 61      BEQ    ERROR_EXIT     ; If length is 0, quit (or you could retry)
+0000107A                            62  
+0000107A                            63      ; =============================================================
+0000107A                            64      ; 3. GAME INITIALIZATION
+0000107A                            65      ; =============================================================
+0000107A  43F9 00001671             66      LEA    GUESS_BUF, A1
+00001080  3639 0000122E             67      MOVE.W WORD_LEN, D3
+00001086  5343                      68      SUBQ.W #1, D3         ; DBRA loop count (N-1)
+00001088                            69  
+00001088                            70  FILL_MASK:
+00001088  12FC 005F                 71      MOVE.B #'_', (A1)+
+0000108C  51CB FFFA                 72      DBRA   D3, FILL_MASK
+00001090  12BC 0000                 73      MOVE.B #0, (A1)       ; Null terminate mask string
+00001094                            74      
+00001094  13FC 0006 00001230        75      MOVE.B #6, LIVES      ; Start lives
+0000109C                            76  
+0000109C                            77      ; =============================================================
+0000109C                            78      ; 4. MAIN GAME LOOP (RENDER & INPUT)
+0000109C                            79      ; =============================================================
+0000109C                            80  GAME_LOOP:
+0000109C                            81      ; --- CLEAR SCREEN (Optional, usually Task 20) ---
+0000109C                            82      ; MOVE.L #20, D0
+0000109C                            83      ; TRAP   #15
+0000109C                            84  
+0000109C                            85      ; --- PRINT LIVES ---
+0000109C  43F9 000011B2             86      LEA    NEWLINE, A1
+000010A2  700E                      87      MOVE.L #14, D0
+000010A4  4E4F                      88      TRAP   #15
+000010A6                            89      
+000010A6  43F9 000011B5             90      LEA    MSG_LIVES, A1
+000010AC  700E                      91      MOVE.L #14, D0
+000010AE  4E4F                      92      TRAP   #15
+000010B0                            93      
+000010B0  7003                      94      MOVE.L #3, D0         ; Print Number
+000010B2  1239 00001230             95      MOVE.B LIVES, D1
+000010B8  C2BC 000000FF             96      AND.L  #$FF, D1       ; Clear trash bits
+000010BE  4E4F                      97      TRAP   #15
+000010C0                            98  
+000010C0                            99      ; --- PRINT WORD MASK (e.g. "_ _ A _") ---
+000010C0  43F9 000011B2            100      LEA    NEWLINE, A1
+000010C6  700E                     101      MOVE.L #14, D0
+000010C8  4E4F                     102      TRAP   #15
+000010CA                           103  
+000010CA  43F9 000011BD            104      LEA    MSG_WORD, A1
+000010D0  700E                     105      MOVE.L #14, D0
+000010D2  4E4F                     106      TRAP   #15
+000010D4                           107      
+000010D4  43F9 00001671            108      LEA    GUESS_BUF, A1  ; Print the underscores
+000010DA  700E                     109      MOVE.L #14, D0
+000010DC  4E4F                     110      TRAP   #15
+000010DE                           111  
+000010DE                           112      ; --- ASK FOR INPUT ---
+000010DE  43F9 000011B2            113      LEA    NEWLINE, A1
+000010E4  700E                     114      MOVE.L #14, D0
+000010E6  4E4F                     115      TRAP   #15
+000010E8                           116  
+000010E8  43F9 000011C5            117      LEA    MSG_PROMPT, A1
+000010EE  700E                     118      MOVE.L #14, D0
+000010F0  4E4F                     119      TRAP   #15
+000010F2                           120  
+000010F2  7005                     121      MOVE.L #5, D0         ; Read Char into D1
+000010F4  4E4F                     122      TRAP   #15
+000010F6                           123      
+000010F6                           124      ; --- LOGIC: CONVERT UPPERCASE ---
+000010F6  B23C 0061                125      CMP.B  #'a', D1
+000010FA  6D00 000E                126      BLT    CHECK_MATCH
+000010FE  B23C 007A                127      CMP.B  #'z', D1
+00001102  6E00 0006                128      BGT    CHECK_MATCH
+00001106  0401 0020                129      SUB.B  #32, D1        ; 'a' -> 'A'
+0000110A                           130  
+0000110A                           131      ; --- LOGIC: CHECK MATCH ---
+0000110A                           132  CHECK_MATCH:
+0000110A  41F9 00001631            133      LEA    SECRET_BUF, A0
+00001110  43F9 00001671            134      LEA    GUESS_BUF, A1
+00001116  3639 0000122E            135      MOVE.W WORD_LEN, D3
+0000111C  5343                     136      SUBQ.W #1, D3
+0000111E  4204                     137      CLR.B  D4             ; D4 = Match Found Flag (0 = No, 1 = Yes)
+00001120                           138  
+00001120                           139  SCAN_LOOP:
+00001120  B218                     140      CMP.B  (A0)+, D1      ; Compare Input vs Secret
+00001122  6600 0008                141      BNE    SKIP_REPLACE
+00001126                           142      
+00001126  1281                     143      MOVE.B D1, (A1)       ; Reveal letter in Guess Buffer
+00001128  183C 0001                144      MOVE.B #1, D4         ; Set Flag = True
+0000112C                           145  
+0000112C                           146  SKIP_REPLACE:
+0000112C  5289                     147      ADDQ.L #1, A1         ; Next char
+0000112E  51CB FFF0                148      DBRA   D3, SCAN_LOOP
+00001132                           149  
+00001132                           150      ; --- EVALUATE RESULT ---
+00001132  4A04                     151      TST.B  D4             ; Did we find a match?
+00001134  6600 0010                152      BNE    CHECK_WIN      ; Yes? Check if game won.
+00001138                           153      
+00001138                           154      ; No match found
+00001138  5339 00001230            155      SUBQ.B #1, LIVES
+0000113E  6700 003A                156      BEQ    GAME_OVER_LOSE ; 0 Lives? Die.
+00001142  6000 FF58                157      BRA    GAME_LOOP      ; Else loop
+00001146                           158  
+00001146                           159  CHECK_WIN:
+00001146                           160      ; Scan GUESS_BUF for underscores
+00001146  41F9 00001671            161      LEA    GUESS_BUF, A0
+0000114C                           162  WIN_SCAN:
+0000114C  1018                     163      MOVE.B (A0)+, D0
+0000114E  6700 000C                164      BEQ    GAME_OVER_WIN  ; Hit NULL without seeing '_' -> WIN!
+00001152  B03C 005F                165      CMP.B  #'_', D0
+00001156  6700 FF44                166      BEQ    GAME_LOOP      ; Found '_', game continues
+0000115A  60F0                     167      BRA    WIN_SCAN
+0000115C                           168  
+0000115C                           169      ; =============================================================
+0000115C                           170      ; 5. ENDINGS
+0000115C                           171      ; =============================================================
+0000115C                           172  GAME_OVER_WIN:
+0000115C  43F9 000011B2            173      LEA    NEWLINE, A1
+00001162  700E                     174      MOVE.L #14, D0
+00001164  4E4F                     175      TRAP   #15
+00001166  43F9 00001671            176      LEA    GUESS_BUF, A1  ; Show full word
+0000116C  4E4F                     177      TRAP   #15
+0000116E  43F9 000011D4            178      LEA    MSG_WIN, A1
+00001174  4E4F                     179      TRAP   #15
+00001176  6000 002C                180      BRA    FINISH
+0000117A                           181  
+0000117A                           182  GAME_OVER_LOSE:
+0000117A  43F9 000011E7            183      LEA    MSG_LOSE, A1
+00001180  700E                     184      MOVE.L #14, D0
+00001182  4E4F                     185      TRAP   #15
+00001184                           186      
+00001184                           187      ; Reveal the word so they know what it was
+00001184  43F9 000011FB            188      LEA    MSG_REVEAL, A1
+0000118A  700E                     189      MOVE.L #14, D0
+0000118C  4E4F                     190      TRAP   #15
+0000118E  43F9 00001631            191      LEA    SECRET_BUF, A1
+00001194  4E4F                     192      TRAP   #15
+00001196  6000 000C                193      BRA    FINISH
+0000119A                           194  
+0000119A                           195  ERROR_EXIT:
+0000119A  43F9 0000120C            196      LEA    MSG_ERR, A1
+000011A0  700E                     197      MOVE.L #14, D0
+000011A2  4E4F                     198      TRAP   #15
+000011A4                           199  
+000011A4                           200  FINISH:
+000011A4  FFFF FFFF                201      SIMHALT
+000011A8                           202  
+000011A8                           203  ; =============================================================
+000011A8                           204  ; 6. DATA SECTION
+000011A8                           205  ; =============================================================
+000011A8= 57 4F 52 44 53 2E ...    206  FILENAME:    DC.B    'WORDS.BIN',0
+000011B2= 0D 0A 00                 207  NEWLINE:     DC.B    13,10,0
+000011B5= 4C 69 76 65 73 3A ...    208  MSG_LIVES:   DC.B    'Lives: ',0
+000011BD= 57 6F 72 64 3A 20 ...    209  MSG_WORD:    DC.B    'Word:  ',0
+000011C5= 45 6E 74 65 72 20 ...    210  MSG_PROMPT:  DC.B    'Enter Letter: ',0
+000011D4= 0D 0A 2A 2A 2A 20 ...    211  MSG_WIN:     DC.B    13,10,'*** YOU WIN! ***',0
+000011E7= 0D 0A 2A 2A 2A 20 ...    212  MSG_LOSE:    DC.B    13,10,'*** GAME OVER ***',0
+000011FB= 0D 0A 54 68 65 20 ...    213  MSG_REVEAL:  DC.B    13,10,'The word was: ',0
+0000120C= 45 72 72 6F 72 3A ...    214  MSG_ERR:     DC.B    'Error: File read failed or empty.',0
+0000122E                           215  
+0000122E                           216  WORD_LEN:    DS.W    1
+00001230                           217  LIVES:       DS.B    1
+00001231                           218  
+00001231                           219  ; Buffers
+00001231                           220  FILE_BUFFER: DS.B    1024  ; Raw file data
+00001631                           221  SECRET_BUF:  DS.B    64    ; The current correct answer
+00001671                           222  GUESS_BUF:   DS.B    64    ; The masked "___" string
+000016B1                           223  
+000016B1                           224      END START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+CHECK_MATCH         110A
+CHECK_WIN           1146
+COPY_CHAR           104E
+COPY_START          1046
+ERROR_EXIT          119A
+FILENAME            11A8
+FILE_BUFFER         1231
+FILL_MASK           1088
+FIND_WORD_LOOP      1030
+FINISH              11A4
+FINISH_COPY         106A
+GAME_LOOP           109C
+GAME_OVER_LOSE      117A
+GAME_OVER_WIN       115C
+GUESS_BUF           1671
+LIVES               1230
+MSG_ERR             120C
+MSG_LIVES           11B5
+MSG_LOSE            11E7
+MSG_PROMPT          11C5
+MSG_REVEAL          11FB
+MSG_WIN             11D4
+MSG_WORD            11BD
+NEWLINE             11B2
+SCAN_LOOP           1120
+SECRET_BUF          1631
+SKIP_REPLACE        112C
+SKIP_WORD           1036
+START               1000
+WIN_SCAN            114C
+WORD_LEN            122E

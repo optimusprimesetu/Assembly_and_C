@@ -1,0 +1,279 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 2/6/2026 10:53:04 AM
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000  7033                       3      MOVE.L #51, D0        ; OPEN FILE
+00001002  43F9 000011C4              4      LEA    FILENAME, A1   
+00001008  4E4F                       5      TRAP   #15            ; D1 HOLD FILE ID
+0000100A                             6  
+0000100A  B2BC FFFFFFFF              7      CMP.L  #$FFFFFFFF, D1 ; IF FILE DOES NOT EXIST
+00001010  6700 01A4                  8      BEQ    ERROR_EXIT
+00001014                             9  
+00001014  7035                      10      MOVE.L #53, D0        ; READ FILE
+00001016  243C 00000400             11      MOVE.L #1024, D2      ; Read 1024 BYTES
+0000101C  43F9 00001261             12      LEA    FILE_BUFFER, A1 
+00001022  4E4F                      13      TRAP   #15            
+00001024                            14      
+00001024  B4BC 00000000             15      CMP.L  #0, D2         ; IF FILE IS EMPTY THEN EXIT
+0000102A  6F00 018A                 16      BLE    ERROR_EXIT
+0000102E                            17  
+0000102E                            18      ; COUNT NUMBER OF WORDS
+0000102E                            19      ;BSR COUNT_WORDS
+0000102E                            20      
+0000102E                            21      ;MOVE.L #8, D0 ; D1.L - CURRENT TIME IN 100THS OF A SECOND
+0000102E                            22      
+0000102E                            23  
+0000102E  3A3C 0001                 24      MOVE.W #1, D5 
+00001032                            25      
+00001032  41F9 00001261             26      LEA    FILE_BUFFER, A0
+00001038  4246                      27      CLR.W  D6             ; Current Word Index
+0000103A                            28      
+0000103A  4EF9 00001058             29      JMP FIND_WORD_LOOP
+00001040                            30  
+00001040                            31  COUNT_WORDS:
+00001040                            32      ; A1 HAS FILE_BUFFER ADDRESS
+00001040                            33      ; D7 WILL HAVE WORD COUNT
+00001040                            34      ; D0 BYTE INDEX
+00001040  7000                      35      MOVE.L #0, D0
+00001042  6000 0004                 36      BRA LOOP_COUNT_WORDS
+00001046  4E75                      37      RTS
+00001048                            38      
+00001048                            39  LOOP_COUNT_WORDS:
+00001048  1019                      40      MOVE.B (A1)+, D0 ; CURRENT BYTE IN D0; A1 INCREMENTED AFTER
+0000104A  B03C 000D                 41      CMP.B  #13, D0        ; \r
+0000104E  6700 0002                 42      BEQ    INCREMENT_LOOP_COUNT_WORDS
+00001052                            43      
+00001052                            44      
+00001052                            45  INCREMENT_LOOP_COUNT_WORDS:
+00001052  5287                      46      ADD.L #1, D7
+00001054  4EF8 1048                 47      JMP LOOP_COUNT_WORDS
+00001058                            48      
+00001058                            49  FIND_WORD_LOOP:
+00001058  BC45                      50      CMP.W  D5, D6         ; Are we at the target word?
+0000105A  6700 0012                 51      BEQ    COPY_START
+0000105E                            52  
+0000105E                            53  SKIP_WORD:
+0000105E  1018                      54      MOVE.B (A0)+, D0      ; READ CHARA
+00001060  6700 0154                 55      BEQ    ERROR_EXIT     ; End of file reached?
+00001064  B03C 000A                 56      CMP.B  #10, D0        ; Is it Line Feed (\n)?
+00001068  66F4                      57      BNE    SKIP_WORD      ; If not, keep skipping
+0000106A  5246                      58      ADDQ.W #1, D6         ; Found newline, increment index
+0000106C  60EA                      59      BRA    FIND_WORD_LOOP
+0000106E                            60  
+0000106E                            61  COPY_START:
+0000106E  43F9 00001661             62      LEA    SECRET_BUF, A1
+00001074  4242                      63      CLR.W  D2             ; Length counter
+00001076                            64  
+00001076                            65  COPY_CHAR:
+00001076  1018                      66      MOVE.B (A0)+, D0
+00001078  6700 0018                 67      BEQ    FINISH_COPY    ; End of buffer
+0000107C  B03C 000D                 68      CMP.B  #13, D0        ; CR? Stop.
+00001080  6700 0010                 69      BEQ    FINISH_COPY
+00001084  B03C 000A                 70      CMP.B  #10, D0        ; LF? Stop.
+00001088  6700 0008                 71      BEQ    FINISH_COPY
+0000108C                            72      
+0000108C  12C0                      73      MOVE.B D0, (A1)+      ; Copy valid char
+0000108E  5242                      74      ADDQ.W #1, D2         ; Length++
+00001090  60E4                      75      BRA    COPY_CHAR
+00001092                            76  
+00001092                            77  FINISH_COPY:
+00001092  12BC 0000                 78      MOVE.B #0, (A1)       ; Null terminate
+00001096  33C2 0000125E             79      MOVE.W D2, WORD_LEN   ; Save length
+0000109C                            80      
+0000109C                            81      ; Safety check: Did we pick an empty line?
+0000109C  4A42                      82      TST.W  D2
+0000109E  6700 0116                 83      BEQ    ERROR_EXIT     ; If length is 0, quit (or you could retry)
+000010A2                            84  
+000010A2                            85      ; =============================================================
+000010A2                            86      ; 3. GAME INITIALIZATION
+000010A2                            87      ; =============================================================
+000010A2  43F9 000016A1             88      LEA    GUESS_BUF, A1
+000010A8  3639 0000125E             89      MOVE.W WORD_LEN, D3
+000010AE  5343                      90      SUBQ.W #1, D3         ; DBRA loop count (N-1)
+000010B0                            91  
+000010B0                            92  FILL_MASK:
+000010B0  12FC 005F                 93      MOVE.B #'_', (A1)+
+000010B4  51CB FFFA                 94      DBRA   D3, FILL_MASK
+000010B8  12BC 0000                 95      MOVE.B #0, (A1)       ; Null terminate mask string
+000010BC                            96      
+000010BC  13FC 0006 00001260        97      MOVE.B #6, LIVES      ; Start lives
+000010C4                            98  
+000010C4                            99      ; =============================================================
+000010C4                           100      ; 4. MAIN GAME LOOP (RENDER & INPUT)
+000010C4                           101      ; =============================================================
+000010C4                           102  GAME_LOOP:
+000010C4                           103      ; --- CLEAR SCREEN (Optional, usually Task 20) ---
+000010C4                           104      ; MOVE.L #20, D0
+000010C4                           105      ; TRAP   #15
+000010C4                           106  
+000010C4                           107      ; --- PRINT LIVES ---
+000010C4  43F9 000011CE            108      LEA    NEWLINE, A1
+000010CA  700E                     109      MOVE.L #14, D0
+000010CC  4E4F                     110      TRAP   #15
+000010CE                           111      
+000010CE  43F9 000011D1            112      LEA    MSG_LIVES, A1
+000010D4  700E                     113      MOVE.L #14, D0
+000010D6  4E4F                     114      TRAP   #15
+000010D8                           115      
+000010D8  7003                     116      MOVE.L #3, D0         ; Print Number
+000010DA  1239 00001260            117      MOVE.B LIVES, D1
+000010E0  C2BC 000000FF            118      AND.L  #$FF, D1       ; Clear trash bits
+000010E6  4E4F                     119      TRAP   #15
+000010E8                           120  
+000010E8                           121      ; --- PRINT WORD MASK (e.g. "_ _ A _") ---
+000010E8  43F9 000011CE            122      LEA    NEWLINE, A1
+000010EE  700E                     123      MOVE.L #14, D0
+000010F0  4E4F                     124      TRAP   #15
+000010F2                           125  
+000010F2  43F9 000011D9            126      LEA    MSG_WORD, A1
+000010F8  700E                     127      MOVE.L #14, D0
+000010FA  4E4F                     128      TRAP   #15
+000010FC                           129      
+000010FC  43F9 000016A1            130      LEA    GUESS_BUF, A1  ; Print the underscores
+00001102  700E                     131      MOVE.L #14, D0
+00001104  4E4F                     132      TRAP   #15
+00001106                           133  
+00001106                           134      ; --- ASK FOR INPUT ---
+00001106  43F9 000011CE            135      LEA    NEWLINE, A1
+0000110C  700E                     136      MOVE.L #14, D0
+0000110E  4E4F                     137      TRAP   #15
+00001110                           138  
+00001110  43F9 000011E1            139      LEA    MSG_PROMPT, A1
+00001116  700E                     140      MOVE.L #14, D0
+00001118  4E4F                     141      TRAP   #15
+0000111A                           142  
+0000111A  7005                     143      MOVE.L #5, D0         ; Read Char into D1
+0000111C  4E4F                     144      TRAP   #15
+0000111E                           145      
+0000111E                           146      ; --- LOGIC: CONVERT UPPERCASE ---
+0000111E  B23C 0061                147      CMP.B  #'a', D1
+00001122  6D00 000E                148      BLT    CHECK_MATCH
+00001126  B23C 007A                149      CMP.B  #'z', D1
+0000112A  6E00 0006                150      BGT    CHECK_MATCH
+0000112E  0401 0020                151      SUB.B  #32, D1        ; 'a' -> 'A'
+00001132                           152  
+00001132                           153  
+00001132                           154  CHECK_MATCH:
+00001132  41F9 00001661            155      LEA    SECRET_BUF, A0
+00001138  43F9 000016A1            156      LEA    GUESS_BUF, A1
+0000113E  3639 0000125E            157      MOVE.W WORD_LEN, D3
+00001144  5343                     158      SUBQ.W #1, D3
+00001146  4204                     159      CLR.B  D4             ; D4 = Match Found Flag (0 = No, 1 = Yes)
+00001148                           160  
+00001148                           161  SCAN_LOOP:
+00001148  B218                     162      CMP.B  (A0)+, D1      ; Compare Input vs Secret
+0000114A  6600 0008                163      BNE    SKIP_REPLACE
+0000114E                           164      
+0000114E  1281                     165      MOVE.B D1, (A1)       ; Reveal letter in Guess Buffer
+00001150  183C 0001                166      MOVE.B #1, D4         ; Set Flag = True
+00001154                           167  
+00001154                           168  SKIP_REPLACE:
+00001154  5289                     169      ADDQ.L #1, A1 
+00001156  51CB FFF0                170      DBRA   D3, SCAN_LOOP
+0000115A                           171  
+0000115A  4A04                     172      TST.B  D4
+0000115C  6600 0010                173      BNE    CHECK_WIN
+00001160                           174      
+00001160                           175      ; No match found
+00001160  5339 00001260            176      SUBQ.B #1, LIVES
+00001166  6700 0038                177      BEQ    GAME_OVER_LOSE
+0000116A  6000 FF58                178      BRA    GAME_LOOP
+0000116E                           179  
+0000116E                           180  CHECK_WIN:
+0000116E                           181      ; CHECK GUESSED BUFFER FOR UNDERSCORES
+0000116E  41F9 000016A1            182      LEA    GUESS_BUF, A0
+00001174                           183      
+00001174                           184  WIN_SCAN:
+00001174  1018                     185      MOVE.B (A0)+, D0 ; POINT TO START OF THE GUESS BUFFER AND THEN INCREMENT THE POINTER
+00001176  6700 000C                186      BEQ    GAME_OVER_WIN ; 
+0000117A  B03C 005F                187      CMP.B  #'_', D0
+0000117E  6700 FF44                188      BEQ    GAME_LOOP ; IF UNDERSCORE FOUND '_' THEN CONTINUE THE GAME
+00001182  60F0                     189      BRA    WIN_SCAN
+00001184                           190  
+00001184                           191  GAME_OVER_WIN:
+00001184  43F9 000011CE            192      LEA    NEWLINE, A1
+0000118A  700E                     193      MOVE.L #14, D0
+0000118C  43F9 000011F0            194      LEA    MSG_REVEAL_W, A1
+00001192  4E4F                     195      TRAP   #15
+00001194  43F9 000016A1            196      LEA    GUESS_BUF, A1  ; SHOW THE FULL WORD
+0000119A  4E4F                     197      TRAP   #15
+0000119C  6000 0022                198      BRA    FINISH
+000011A0                           199  
+000011A0                           200  GAME_OVER_LOSE:
+000011A0                           201      ; REVEAL THE WORD AT THE END OF THE GAME
+000011A0  43F9 00001209            202      LEA    MSG_REVEAL, A1
+000011A6  700E                     203      MOVE.L #14, D0
+000011A8  4E4F                     204      TRAP   #15
+000011AA  43F9 00001661            205      LEA    SECRET_BUF, A1
+000011B0  4E4F                     206      TRAP   #15
+000011B2  6000 000C                207      BRA    FINISH
+000011B6                           208  
+000011B6                           209  ERROR_EXIT:
+000011B6  43F9 0000121A            210      LEA    MSG_ERR, A1
+000011BC  700E                     211      MOVE.L #14, D0
+000011BE  4E4F                     212      TRAP   #15
+000011C0                           213  
+000011C0                           214  FINISH:
+000011C0  FFFF FFFF                215      SIMHALT
+000011C4                           216  
+000011C4= 57 4F 52 44 53 2E ...    217  FILENAME:     DC.B    'WORDS.BIN',0
+000011CE= 0D 0A 00                 218  NEWLINE:      DC.B    13,10,0
+000011D1= 4C 69 76 65 73 3A ...    219  MSG_LIVES:    DC.B    'Lives: ',0
+000011D9= 57 6F 72 64 3A 20 ...    220  MSG_WORD:     DC.B    'Word:  ',0
+000011E1= 45 6E 74 65 72 20 ...    221  MSG_PROMPT:   DC.B    'Enter Letter: ',0
+000011F0= 0D 0A 59 4F 55 20 ...    222  MSG_REVEAL_W: DC.B    13,10,'YOU GUESSED THE WORD: ',0
+00001209= 0D 0A 54 48 45 20 ...    223  MSG_REVEAL:   DC.B    13,10,'THE WORD WAS: ',0
+0000121A= 50 4C 45 41 53 45 ...    224  MSG_ERR:      DC.B    'PLEASE MAKE SURE FILE WORDS.BIN EXISTS AND CONTAINS A WORD PER LINE',0
+0000125E                           225  
+0000125E                           226  WORD_LEN:    DS.W    1
+00001260                           227  LIVES:       DS.B    1
+00001261                           228  
+00001261                           229  ; Buffers
+00001261                           230  FILE_BUFFER: DS.B    1024  ; Raw file data
+00001661                           231  SECRET_BUF:  DS.B    64    ; The current correct answer
+000016A1                           232  GUESS_BUF:   DS.B    64    ; The masked "___" string
+000016E1                           233  
+000016E1                           234      END START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+CHECK_MATCH         1132
+CHECK_WIN           116E
+COPY_CHAR           1076
+COPY_START          106E
+COUNT_WORDS         1040
+ERROR_EXIT          11B6
+FILENAME            11C4
+FILE_BUFFER         1261
+FILL_MASK           10B0
+FIND_WORD_LOOP      1058
+FINISH              11C0
+FINISH_COPY         1092
+GAME_LOOP           10C4
+GAME_OVER_LOSE      11A0
+GAME_OVER_WIN       1184
+GUESS_BUF           16A1
+INCREMENT_LOOP_COUNT_WORDS  1052
+LIVES               1260
+LOOP_COUNT_WORDS    1048
+MSG_ERR             121A
+MSG_LIVES           11D1
+MSG_PROMPT          11E1
+MSG_REVEAL          1209
+MSG_REVEAL_W        11F0
+MSG_WORD            11D9
+NEWLINE             11CE
+SCAN_LOOP           1148
+SECRET_BUF          1661
+SKIP_REPLACE        1154
+SKIP_WORD           105E
+START               1000
+WIN_SCAN            1174
+WORD_LEN            125E

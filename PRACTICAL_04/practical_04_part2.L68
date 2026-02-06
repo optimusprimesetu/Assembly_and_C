@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/3/2026 12:08:07 PM
+Created On: 2/3/2026 1:55:00 PM
 
 00000000                             1  *-----------------------------------------------------------
 00000000                             2  * Title      :
@@ -16,39 +16,32 @@ Created On: 2/3/2026 12:08:07 PM
 00001006                            12      
 00001006  11FC 0064 3000            13      MOVE.B #100, $3000
 0000100C                            14      
-0000100C                            15      ; Move location of NPC into Data Register
-0000100C  143C 0001                 16      MOVE.B #$1, D2 ; X
-00001010  163C 000D                 17      MOVE.B #$d, D3 ; Y
-00001014                            18      
-00001014                            19      ; Bitwise AND D2 and D3
-00001014  C602                      20      AND.B D2, D3 ; D3 will be 1
-00001016  B702                      21      EOR.B D3, D2 ; D2 will be 0
-00001018  8403                      22      OR.B  D3, D2 ; D2 will be 1
-0000101A  4602                      23      NOT.B D2     ; D2 will be FE because NOT(0000 0001) => 1111 1110 which is F E 
-0000101C  0A02 00FF                 24      EOR.B #$FF, D2
-00001020                            25      ; MOVE.B #1, D2 ; move 1 into D2
-00001020  0842 0000                 26      BCHG.L #00, D2 ; flip first bit of D2
-00001024                            27      
-00001024  78FF                      28      MOVE.L #$FFFFFFFF, D4
-00001026  7A01                      29      MOVE.L #1, D5
-00001028  D885                      30      ADD.L D5, D4
-0000102A                            31      
-0000102A                            32      ; Health (Byte) address at A1 register
-0000102A  43F8 3000                 33      LEA $3000, A1    ; Health (Byte) address at A1 register
-0000102E  43F8 3000                 34      LEA $3000, A1
-00001032                            35      
-00001032                            36      
-00001032                            37      ; Hit by NPC
-00001032  0411 0014                 38      SUB.B #20, (A1)
-00001036                            39      
-00001036                            40      ; Pickup health found
-00001036  0611 000A                 41      ADD.B #10, (A1)
-0000103A                            42      
-0000103A  FFFF FFFF                 43      SIMHALT             ; halt simulator
-0000103E                            44  
-0000103E                            45  * Put variables and constants here
-0000103E                            46  
-0000103E                            47      END    START        ; last line of source
+0000100C                            15      ; I didn't get what MOVE.B #$12, D2 example really meant so I will do it my way
+0000100C                            16      
+0000100C  143C 000A                 17      MOVE.B #%1010, D2
+00001010  163C 000F                 18      MOVE.B #%1111, D3
+00001014                            19      
+00001014                            20      ; BITWISE AND, OR, EOR, NOT
+00001014  C602                      21      AND.B D2, D3
+00001016  8602                      22      OR.B  D2, D3
+00001018  B503                      23      EOR.B D2, D3
+0000101A  4603                      24      NOT.B D3
+0000101C                            25      
+0000101C                            26      ; Health (Byte) address at A1 register
+0000101C  43F8 3000                 27      LEA $3000, A1    ; Health (Byte) address at A1 register
+00001020  43F8 3000                 28      LEA $3000, A1
+00001024                            29      
+00001024                            30      ; Hit by NPC
+00001024  0411 0014                 31      SUB.B #20, (A1)
+00001028                            32      
+00001028                            33      ; Pickup health found
+00001028  0611 000A                 34      ADD.B #10, (A1)
+0000102C                            35      
+0000102C  FFFF FFFF                 36      SIMHALT             ; halt simulator
+00001030                            37  
+00001030                            38  * Put variables and constants here
+00001030                            39  
+00001030                            40      END    START        ; last line of source
 
 No errors detected
 No warnings generated
