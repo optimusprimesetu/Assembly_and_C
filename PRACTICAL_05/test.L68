@@ -1,0 +1,41 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 10/02/2026 11:24:43
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000                             4  INITIALIZE:
+00001000  103C 0003                  5      MOVE.B  #3, D0
+00001004  123C 0000                  6      MOVE.B  #0, D1
+00001008                             7      
+00001008                             8  GAME_LOOP:
+00001008  B03C 0001                  9      CMP.B   #1, D0
+0000100C  6600 0006                 10      BNE     GAME_POINTS
+00001010  6700 000A                 11      BEQ     GAME_OVER
+00001014                            12      
+00001014                            13  GAME_POINTS:
+00001014  0601 000A                 14      ADD.B   #10, D1
+00001018  5300                      15      SUB.B   #1,  D0
+0000101A  60EC                      16      BRA     GAME_LOOP
+0000101C                            17      
+0000101C                            18  
+0000101C                            19  GAME_OVER:
+0000101C                            20  
+0000101C  FFFF FFFF                 21      SIMHALT
+00001020                            22  
+00001020                            23  
+00001020                            24      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+GAME_LOOP           1008
+GAME_OVER           101C
+GAME_POINTS         1014
+INITIALIZE          1000
+START               1000

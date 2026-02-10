@@ -1,0 +1,85 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 10/02/2026 11:46:11
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000                             4  INITIALIZE:
+00001000  43F9 00001054              5      LEA PLAYER_POSITION, A1
+00001006  45F9 00001056              6      LEA ENEMY_POSITION,  A2
+0000100C                             7      
+0000100C                             8      ; X IN UPPER WORD
+0000100C                             9      ; Y IN LOWER WORD
+0000100C  1611                      10      MOVE.B  (A1), D3
+0000100E  4843                      11      SWAP    D3
+00001010  1629 0001                 12      MOVE.B  1(A1),D3
+00001014                            13      
+00001014  1812                      14      MOVE.B  (A2), D4
+00001016  4844                      15      SWAP    D4
+00001018  182A 0001                 16      MOVE.B  1(A2),D4
+0000101C                            17      
+0000101C                            18  COLLISION_CHECK:
+0000101C                            19      ; CHECK PLAYER Y
+0000101C  B63C 0037                 20      CMP.B   #55, D3
+00001020                            21      ; IF NOT 55 THEN THEY ARE SURE NOT IN (55, 55) TOGETHER
+00001020  6600 0026                 22      BNE     NEXT_MOVE
+00001024                            23      
+00001024                            24      ; IF X IS 55 LETS CHECK FOR X TOO
+00001024                            25      ; CHECK PLAYER X
+00001024  4843                      26      SWAP    D3
+00001026  B63C 0037                 27      CMP.B   #55, D3
+0000102A  6600 001C                 28      BNE     NEXT_MOVE
+0000102E  4843                      29      SWAP    D3
+00001030                            30      
+00001030                            31      ; HERE PLAYER'S X AND Y ARE 55 AND 55
+00001030                            32      ; SO LETS CHECK ENEMY POSITION FOR (55, 55) AS WELL
+00001030                            33      
+00001030                            34      ; CHECK ENEMY Y
+00001030  B83C 0037                 35      CMP.B   #55, D4
+00001034                            36      ; IF NOT 55 THEN THEY ARE SURE NOT IN (55, 55) TOGETHER
+00001034  6600 0012                 37      BNE     NEXT_MOVE
+00001038                            38      
+00001038                            39      ; IF X IS 55 LETS CHECK FOR X TOO
+00001038                            40      ; CHECK ENEMY X
+00001038  4844                      41      SWAP    D4
+0000103A  B83C 0037                 42      CMP.B   #55, D4
+0000103E  6600 0008                 43      BNE     NEXT_MOVE
+00001042  4844                      44      SWAP    D4
+00001044                            45      
+00001044                            46      ; HERE BOTH PLAYER'S AND ENEMY'S POSITIONS BY X AND Y ARE 55 AND 55
+00001044  6000 0006                 47      BRA     COLLISION
+00001048                            48  
+00001048                            49  NEXT_MOVE:
+00001048                            50      ; MOVE THE PLAYER +1 BY X
+00001048  5203                      51      ADD.B   #1, D3
+0000104A  60D0                      52      BRA     COLLISION_CHECK
+0000104C                            53      
+0000104C                            54  COLLISION:
+0000104C  6000 0002                 55      BRA     GAME_OVER
+00001050                            56      
+00001050                            57  GAME_OVER:
+00001050                            58  
+00001050  FFFF FFFF                 59      SIMHALT
+00001054                            60  
+00001054                            61  
+00001054= 35 37                     62  PLAYER_POSITION: DC.B 53, 55
+00001056= 37 37                     63  ENEMY_POSITION:  DC.B 55, 55
+00001058                            64  
+00001058                            65      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+COLLISION           104C
+COLLISION_CHECK     101C
+ENEMY_POSITION      1056
+GAME_OVER           1050
+INITIALIZE          1000
+NEXT_MOVE           1048
+PLAYER_POSITION     1054
+START               1000

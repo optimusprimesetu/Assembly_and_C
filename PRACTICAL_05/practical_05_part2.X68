@@ -1,0 +1,74 @@
+    ORG    $1000
+START:
+
+INITIALIZE:
+    LEA PLAYER_POSITION, A1
+    LEA ENEMY_POSITION,  A2
+
+    MOVE.B  #50,  D1
+    MOVE.B  #0,   D2
+    
+    ; X IN UPPER WORD
+    ; Y IN LOWER WORD
+    MOVE.B  (A1), D3
+    SWAP    D3
+    MOVE.B  1(A1),D3
+    
+    MOVE.B  (A2), D4
+    SWAP    D4
+    MOVE.B  1(A2),D4
+    
+COLLISION_CHECK:
+    ; CHECK PLAYER Y
+    CMP.B   #55, D3
+    ; IF NOT 55 THEN THEY ARE SURE NOT IN (55, 55) TOGETHER
+    BNE     NEXT_MOVE
+    
+    ; IF X IS 55 LETS CHECK FOR X TOO
+    ; CHECK PLAYER X
+    SWAP    D3
+    CMP.B   #55, D3
+    BNE     NEXT_MOVE
+    SWAP    D3
+    
+    ; HERE PLAYER'S X AND Y ARE 55 AND 55
+    ; SO LETS CHECK ENEMY POSITION FOR (55, 55) AS WELL
+    
+    ; CHECK ENEMY Y
+    CMP.B   #55, D4
+    ; IF NOT 55 THEN THEY ARE SURE NOT IN (55, 55) TOGETHER
+    BNE     NEXT_MOVE
+    
+    ; IF X IS 55 LETS CHECK FOR X TOO
+    ; CHECK ENEMY X
+    SWAP    D4
+    CMP.B   #55, D4
+    BNE     NEXT_MOVE
+    SWAP    D4
+    
+    ; HERE BOTH PLAYER'S AND ENEMY'S POSITIONS BY X AND Y ARE 55 AND 55
+    BRA     COLLISION
+
+NEXT_MOVE:
+    ADD.B   #1, D2
+    BRA     COLLISION_CHECK
+    
+COLLISION:
+    BRA     GAME_OVER
+    
+GAME_OVER:
+
+    SIMHALT
+
+
+PLAYER_POSITION: DC.B 10, 15
+ENEMY_POSITION:  DC.B 50, 55
+
+    END    START
+    
+    
+    
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~1~
+*~Tab size~4~

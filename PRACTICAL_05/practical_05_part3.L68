@@ -1,0 +1,65 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 10/02/2026 11:57:41
+
+00001000                             1      ORG     $1000
+00001000  =00000064                  2  DAMAGE  EQU     100
+00001000                             3  START:
+00001000                             4  GAME_LOOP:
+00001000  43F9 00001055              5          LEA     MSG_GAME_LOOP, A1
+00001006  103C 000D                  6          MOVE.B  #13, D0
+0000100A  4E4F                       7          TRAP    #15
+0000100C  0C39 0000 00001054         8          CMP.B   #0, PLAYER_HEALTH
+00001014  6700 002C                  9          BEQ     GAME_OVER
+00001018  6100 0008                 10          BSR     UPDATE
+0000101C  6100 000C                 11          BSR     COLLISION_CHECK
+00001020  60DE                      12          BRA     GAME_LOOP
+00001022                            13  
+00001022                            14  UPDATE:
+00001022  5239 00001052             15          ADD.B   #1, PLAYER_POSITION
+00001028  4E75                      16          RTS
+0000102A                            17  
+0000102A                            18  COLLISION_CHECK:
+0000102A  1239 00001052             19          MOVE.B  PLAYER_POSITION, D1
+00001030  B202                      20          CMP.B   D2, D1
+00001032  6700 0004                 21          BEQ     COLLISION
+00001036  4E75                      22          RTS
+00001038                            23  
+00001038                            24  COLLISION:
+00001038  0439 0064 00001054        25          SUB.B   #DAMAGE, PLAYER_HEALTH
+00001040  60BE                      26          BRA     GAME_LOOP
+00001042                            27  
+00001042                            28  GAME_OVER:
+00001042  43F9 00001067             29          LEA     MSG_GAME_OVER, A1
+00001048  103C 000D                 30          MOVE.B  #13, D0
+0000104C  4E4F                      31          TRAP    #15
+0000104E  FFFF FFFF                 32          SIMHALT
+00001052                            33  
+00001052= 0A                        34  PLAYER_POSITION:    DC.B    10
+00001053= 32                        35  ENEMY_POSITION:     DC.B    50
+00001054= 64                        36  PLAYER_HEALTH:      DC.B    100
+00001055                            37  
+00001055= 47 61 6D 65 20 4C ...     38  MSG_GAME_LOOP       DC.B    'Game Loop........',0
+00001067= 47 61 6D 65 20 4F ...     39  MSG_GAME_OVER       DC.B    'Game Over!',0
+00001072                            40  
+00001072                            41          END     START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+COLLISION           1038
+COLLISION_CHECK     102A
+DAMAGE              64
+ENEMY_POSITION      1053
+GAME_LOOP           1000
+GAME_OVER           1042
+MSG_GAME_LOOP       1055
+MSG_GAME_OVER       1067
+PLAYER_HEALTH       1054
+PLAYER_POSITION     1052
+START               1000
+UPDATE              1022
