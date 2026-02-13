@@ -1,114 +1,151 @@
     ORG    $1000
 
-* D2 used for Trap Calls, AND Counting ENEMIES
-* D1 used for Players Health
-* D2 used for Enemy Positions
-* D4 used for ENEMY count
-* A0 for counting enemies
-* A1 for progress messages
-* A2 used for PLAYER_X
-* A3 used for ENEMY_POSITIONS
-
-DAMAGE          EQU    10             ; Damage when Collisions occur
+; --- CONSTANTS ---
+DAMAGE        EQU     10              ; Damage when Collisions occur
+POWER_UP_HEAL EQU     20
 
 START:
-    LEA        PLAYER_X, A2           ; Player will move along X axis
-    LEA        ENEMY_POSITIONS, A3    ; Enemy positions or spawn points
-    BRA        GAME_LOOP
+    LEA     PLAYER_X, A2            ; Player will move along X axis
+    LEA     ENEMY_POSITIONS, A3     ; Enemy positions or spawn points
+    BRA     GAME_LOOP
 
 GAME_LOOP:
-    BSR        COUNT_ENEMIES          ; Size of the ENEMY_POSITIONS Array
-    MOVE.B     D0, D4                 ; Reset Enemy count at beginning of loop
+    BSR     COUNT_ENEMIES           ; Count enemies
+    MOVE.L  D0, D4                  ; Store count in D4
 
-    LEA        MSG_GAMELOOP, A1       ; Load and Draw Gameloop Message
-    BSR        DRAW
+    LEA     MSG_GAMELOOP, A1        ; Load "Game Loop" message
+    BSR     DRAW                    ; Print it (Task 14, cursor stays at end)
+    
+    LEA     CRLF, A1                ; Load New Line
+    BSR     DRAW                    ; Print New Line (Cursor moves down)
 
-    BSR        UPDATE                 ; Call UPDATE
-    BRA        GAME_LOOP              ; Call GAME_LOOP
+    BSR     UPDATE                  ; Call UPDATE
+    BRA     GAME_LOOP               ; Repeat
 
 UPDATE:
-    MOVE.B     PLAYER_HEALTH, D1      ; Move Player Health into D1
+    ; --- DISPLAY HEALTH ---
+    LEA     MSG_HEALTH, A1
+    BSR     DRAW                    ; Print "Health : "
 
-    LEA        MSG_HEALTH, A1         ; Load and Draw Health Message
-    BSR        DRAW
+    CLR.L   D1                      ; Clear D1 to remove junk data
+    MOVE.B  PLAYER_HEALTH, D1       ; Load Health into D1
+    MOVE.B  #3, D0                  ; TASK 3: Print Decimal Number
+    TRAP    #15
 
-    MOVE.B     D1, D0                 ; Display signed number in D1.L in smallest field.
-    TRAP       #15
+    LEA     CRLF, A1                ; Print New Line
+    BSR     DRAW
 
-    LEA        CRLF, A1               ; Load and Carriage Return and Line Feed
-    BSR        DRAW
+    BSR CHECK_POWER_UP
 
-    CMP        #0, D1                 ; Check if Health is 0
-    BLE        GAME_OVER              ; Game Over
-    ADD.L      #1, (A2)               ; Change X position of Player
-    BSR        COLLISION              ; Check for Collisions with ENEMIES
+    ; --- DISPLAY POSITION ---
+    LEA     MSG_POSITION, A1
+    BSR     DRAW                    ; Print "Player X: "
+
+    MOVE.L  PLAYER_X, D1            ; Load X Position (Longword) into D1
+    MOVE.B  #3, D0                  ; TASK 3: Print Decimal Number
+    TRAP    #15
+
+    LEA     CRLF, A1                ; Print New Line
+    BSR     DRAW
+
+    ; --- GAME LOGIC ---
+    CMP.B   #0, PLAYER_HEALTH       ; Check if Health <= 0
+    BLE     GAME_OVER
+    
+    ADD.L   #1, PLAYER_X            ; Move Player
+    BSR     COLLISION               ; Check Collisions
     RTS
 
 DRAW:
-    MOVE.B     #13, D0
-    TRAP       #15
+    MOVE.B  #14, D0                 ; Task 14: Print String WITHOUT new line
+    TRAP    #15
+    RTS
+
+CHECK_POWER_UP:
+    MOVE.L  CURRENT_POWER_UP, D0
+    LSL.L   #2, D0 ; multiply by 4 because each power up is a long
+                   ; so to move in 4 bytes increments
+    
+    LEA     POWER_UPS,        A4
+    
+    MOVE.L  (A4, D0.L),       D2 
+    
+    CMP.L   #0, D2
+    BEQ     POWER_DONE
+    
+    MOVE.L  PLAYER_X,         D3
+    
+    CMP.L   D2, D3
+    BNE     POWER_DONE
+    
+    ADD.B   #POWER_UP_HEAL, PLAYER_HEALTH
+    ADD.L   #1, CURRENT_POWER_UP
+POWER_DONE:
     RTS
 
 COLLISION:
-    MOVE.B     #1, D5                 ; Loop through Array
-    LEA        ENEMY_POSITIONS, A3    ; Load ENEMY_POSITIONS Array
-
-ITERATE:
-    CMP        D5, D4                 ; Counter for ENEMY_POSITIONS
-    ADD.B      #1, D5                 ; Subtract one
-    BEQ        GAME_LOOP              ; If 0 goto GAME_LOOP
-    BNE        CHECK_ENEMIES          ; If not Check for Enemy Collisions
-    RTS
-
-CHECK_ENEMIES:
-    MOVE.L     (A3)+, D2              ; Move ENEMIES position to D2
-    MOVE.L     (A2), D3               ; Move Player position to D3
-
-    CMP.L      D2, D3                 ; Compare Player and Enemy position
-    BEQ        REDUCE_HEALTH          ; If equal reduce health
-    BNE        ITERATE                ; Iterate to next Enemy
+    LEA     ENEMY_POSITIONS, A3     ; Reset pointer to start of enemies
+    
+COLLISION_LOOP:
+    MOVE.L  (A3)+, D2               ; Get Enemy X (Longword)
+    BEQ     COLLISION_DONE          ; If 0 (Terminator), we are done checking
+    
+    MOVE.L  PLAYER_X, D3            ; Get Player X (Longword)
+    CMP.L   D2, D3                  ; Compare them
+    BEQ     REDUCE_HEALTH           ; Hit!
+    BRA     COLLISION_LOOP          ; Check next enemy
 
 REDUCE_HEALTH:
-    LEA        MSG_COLLISION, A1      ; Load and draw Collision Message
-    BSR        DRAW
+    LEA     MSG_COLLISION, A1
+    BSR     DRAW
+    LEA     CRLF, A1
+    BSR     DRAW
 
-    SUB.B      #DAMAGE, PLAYER_HEALTH
+    SUB.B   #DAMAGE, PLAYER_HEALTH
 
-    LEA        MSG_DAMAGE, A1         ; Load and Draw Damage Message
-    BSR        DRAW
+    LEA     MSG_DAMAGE, A1
+    BSR     DRAW
+    LEA     CRLF, A1
+    BSR     DRAW
+    
+    ; We fall through to COLLISION_DONE to return safely to UPDATE
 
-    BRA        GAME_LOOP
+COLLISION_DONE:
+    RTS
 
 GAME_OVER:
-    LEA        MSG_GAMEOVER, A1
-    BSR        DRAW
-    STOP       #$2700
+    LEA     MSG_GAMEOVER, A1
+    BSR     DRAW
+    STOP    #$2700
 
 COUNT_ENEMIES:
-    MOVE.B     #0, D0                 ; Initialize counter to 0
-    LEA        ENEMY_POSITIONS, A0    ; Load the Address of the Array into A0
+    CLR.L   D0                      ; Initialize counter to 0
+    LEA     ENEMY_POSITIONS, A0     ; Load Address of Array
 
-COUNT_ENEMIES_LOOP:
-    TST.B      (A0)+                  ; Test the byte at the address in A0 (check != 0) and increment A0
-    BEQ        END_COUNTING           ; If the byte is zero, it's the end of the array
-
-    ADD.B      #1, D0                 ; Increment the counter
-    BRA        COUNT_ENEMIES_LOOP     ; Repeat the loop
+COUNT_LOOP:
+    TST.L   (A0)+                   ; Test Longword (4 bytes)
+    BEQ     END_COUNTING            ; If 0, end
+    ADD.L   #1, D0                  ; Increment counter
+    BRA     COUNT_LOOP
 
 END_COUNTING:
     RTS
 
-PLAYER_X        DC.L    1
-PLAYER_HEALTH   DC.B    100
-MSG_HEALTH      DC.B    'Health : ', 0
-MSG_GAMELOOP    DC.B    'Game Loop', 0
-MSG_COLLISION   DC.B    'Collision', 0
-MSG_GAMEOVER    DC.B    'Game Over', 0
-MSG_DAMAGE      DC.B    'Taking Damage', 0
-CRLF            DC.B    $0D,$0A,0
-ENEMY_POSITIONS DC.L    20, 30, 40, 50, 60, 70, 80, 90, 200, 300, 500, 0 ; Terminate Array with a 0
+PLAYER_X         DC.L    1
+PLAYER_HEALTH    DC.B    100
+MSG_HEALTH       DC.B    'Health : ', 0
+MSG_POSITION     DC.B    'Player X: ', 0
+MSG_GAMELOOP     DC.B    'Game Loop', 0
+MSG_COLLISION    DC.B    'Collision', 0
+MSG_GAMEOVER     DC.B    'Game Over', 0
+MSG_DAMAGE       DC.B    'Taking Damage', 0
+CRLF             DC.B    $0D, $0A, 0
 
-    END    START
+ENEMY_POSITIONS  DC.L    20, 30, 40, 50, 60, 70, 80, 90, 200, 300, 500, 0
+POWER_UPS        DC.L    10, 55, 220, 0
+CURRENT_POWER_UP DC.L    0
+
+    END     START
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
