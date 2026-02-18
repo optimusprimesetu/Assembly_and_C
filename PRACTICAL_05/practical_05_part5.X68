@@ -141,6 +141,8 @@ MSG_GAMEOVER     DC.B    'Game Over', 0
 MSG_DAMAGE       DC.B    'Taking Damage', 0
 CRLF             DC.B    $0D, $0A, 0
 
+EVEN
+
 ENEMY_POSITIONS  DC.L    20, 30, 40, 50, 60, 70, 80, 90, 200, 300, 500, 0
 POWER_UPS        DC.L    10, 55, 220, 0
 CURRENT_POWER_UP DC.L    0
