@@ -1,0 +1,38 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 24/02/2026 11:29:50
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00001000                             7      ORG    $1000
+00001000                             8  START:                  ; first instruction of program
+00001000                             9  
+00001000  103C 0002                 10      MOVE.B #2, D0
+00001004  4E4F                      11      TRAP   #15
+00001006                            12      
+00001006  43F9 00001016             13      LEA     MESSAGE, A1
+0000100C  103C 000D                 14      MOVE.B  #13, D0
+00001010  4E4F                      15      TRAP    #15
+00001012                            16  
+00001012                            17  END_PROG:
+00001012                            18  
+00001012  FFFF FFFF                 19      SIMHALT             ; halt simulator
+00001016                            20  
+00001016= 54 72 61 70 20 54 ...     21  MESSAGE: DC.B 'Trap Task Test', 0
+00001025                            22  
+00001025                            23      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+END_PROG            1012
+MESSAGE             1016
+START               1000

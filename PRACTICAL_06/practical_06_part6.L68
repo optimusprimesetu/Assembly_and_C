@@ -1,0 +1,61 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 24/02/2026 12:19:55
+
+00001000                             1      ORG     $1000
+00001000                             2  START:
+00001000  2F3C 0000104E              3          MOVE.L  #HEALTH, -(SP)  ; Note position in Stack
+00001006                             4  
+00001006  103C 000E                  5          MOVE.B  #14, D0
+0000100A  123C 000E                  6          MOVE.B  #14, D1
+0000100E                             7  
+0000100E  2F00                       8          MOVE.L  D0, -(SP)       ; Player X
+00001010  2F01                       9          MOVE.L  D1, -(SP)       ; Enemy X
+00001012                            10  
+00001012  4EB9 00001020             11          JSR     GAME_LOOP
+00001018  6100 0022                 12          BSR     HEADS_UP_DISPLAY
+0000101C  6000 002C                 13          BRA     END_GAME
+00001020                            14  
+00001020                            15  GAME_LOOP:
+00001020                            16  
+00001020  222F 0004                 17          MOVE.L  4(SP), D1       ; Note depth in Stack
+00001024  202F 0008                 18          MOVE.L  8(SP), D0       ; Note depth in Stack
+00001028                            19  
+00001028  B240                      20          CMP     D0, D1
+0000102A  6700 0006                 21          BEQ     DAMAGE
+0000102E  6000 000A                 22          BRA     NO_DAMAGE
+00001032                            23  
+00001032                            24  DAMAGE:
+00001032  226F 000C                 25          MOVEA.L 12(SP), A1      ; Note depth in Stack
+00001036  0411 000A                 26          SUB.B   #10, (A1)
+0000103A                            27  NO_DAMAGE:
+0000103A  4E75                      28          RTS
+0000103C                            29  
+0000103C                            30  HEADS_UP_DISPLAY:
+0000103C  1239 0000104E             31          MOVE.B  HEALTH, D1
+00001042  103C 0003                 32          MOVE.B  #3, D0
+00001046  4E4F                      33          TRAP    #15
+00001048  4E75                      34          RTS
+0000104A                            35  
+0000104A                            36  END_GAME:
+0000104A                            37  
+0000104A  FFFF FFFF                 38          SIMHALT                 ; halt simulator
+0000104E                            39  
+0000104E= 64                        40  HEALTH: DC.B    100
+0000104F                            41  
+0000104F                            42          END     START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+DAMAGE              1032
+END_GAME            104A
+GAME_LOOP           1020
+HEADS_UP_DISPLAY    103C
+HEALTH              104E
+NO_DAMAGE           103A
+START               1000

@@ -1,0 +1,55 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 24/02/2026 12:07:00
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00001000                             7      ORG    $1000
+00001000                             8  START:                  ; first instruction of program
+00001000                             9  
+00001000  43F9 00001042             10      LEA    HEALTH, A1
+00001006  2F3C 00001042             11      MOVE.L #HEALTH, -(SP)
+0000100C  4EB9 0000101A             12      JSR    GAME_LOOP
+00001012  6100 0010                 13      BSR    HEADS_UP_DISPLAY
+00001016  6000 0026                 14      BRA    END
+0000101A                            15      
+0000101A                            16  GAME_LOOP:
+0000101A  226F 0004                 17      MOVEA.L 4(SP), A1
+0000101E  0411 000A                 18      SUB.B   #10,   (A1)
+00001022  4E75                      19      RTS
+00001024                            20      
+00001024                            21  HEADS_UP_DISPLAY:
+00001024  43F9 00001043             22      LEA    MESSAGE, A1
+0000102A  103C 000E                 23      MOVE.B #14, D0
+0000102E  4E4F                      24      TRAP   #15
+00001030  1239 00001042             25      MOVE.B HEALTH, D1
+00001036  103C 0003                 26      MOVE.B #3, D0
+0000103A  4E4F                      27      TRAP   #15
+0000103C  4E75                      28      RTS
+0000103E                            29  
+0000103E                            30  END:
+0000103E                            31  
+0000103E  FFFF FFFF                 32      SIMHALT             ; halt simulator
+00001042                            33  
+00001042= 64                        34  HEALTH:  DC.B 100
+00001043= 48 65 61 6C 74 68 ...     35  MESSAGE: DC.B 'Health: ',0
+0000104C                            36  
+0000104C                            37      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+END                 103E
+GAME_LOOP           101A
+HEADS_UP_DISPLAY    1024
+HEALTH              1042
+MESSAGE             1043
+START               1000
