@@ -27,6 +27,29 @@ START:                  ; first instruction of program
     MOVE.B #4, D0
     TRAP   #15
     
+    MOVE.B #5, D0
+    TRAP   #15
+    
+    MOVE.B #13, D0
+    TRAP   #15
+    
+    MOVE.B #0, D1
+    
+    MOVE.B #5, D0
+    TRAP   #15
+    
+    CMP.B  #0, D1
+    BNE    NOT_PENDING
+PENDING:
+    MOVE.B #1 ,D1
+    BRA    AFTER
+NOT_PENDING:
+    MOVE.B #0, D1
+AFTER:
+    
+    MOVE.B #8, D0
+    TRAP   #15
+    
     SIMHALT             ; halt simulator
 
 
