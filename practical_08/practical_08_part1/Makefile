@@ -7,9 +7,17 @@ MSG_CLEAN   := "Cleaning up"
 BUILD_DIR   := ./bin
 SRC_DIR     := ./src
 
-TARGET      := ${BUILD_DIR}/sampleapp.bin
+ifeq ($(OS),Windows_NT)
+    TARGET  := $(BUILD_DIR)/prog.exe
+    RM      := del /Q
+    SEP     := \\
+else
+    TARGET  := $(BUILD_DIR)/prog
+    RM      := rm -f
+    SEP     := /
+endif
 
-SRC         := ${SRC_DIR}/introduction/lesson_01/main.c
+SRC         := ${SRC_DIR}/main.c
 
 all         := build
 
@@ -17,8 +25,8 @@ build:
 	@echo	${MSG_START}
 	${CXX}	-o	${TARGET}	${SRC}	-I.
 	@echo	${MSG_END}
-	./${TARGET}
+	${TARGET}
 
 clean:
 	@echo	${MSG_CLEAN}
-	rm ${TARGET}
+	$(RM) $(subst /,$(SEP),$(TARGET))
