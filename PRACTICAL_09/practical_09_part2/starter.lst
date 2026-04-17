@@ -1,0 +1,33 @@
+     1                                  ; Filename practical_09_part2.asm
+     2                                  
+     3                                  ; Registers used: rdx, rsi, rdi, rax (64 bit)
+     4                                  
+     5                                  ; GLOBALS
+     6                                  global _start ;Declared for linker this is declaring _start (entry point)
+     7                                  
+     8                                  ; TEXT SECTION
+     9                                  section .text
+    10                                  _start:                                  ;linker entry point
+    11 00000000 BA0F000000                 mov  rdx,  msg_length                 ;message length see length equ 64 Bit Register
+    12                                  
+    13 00000005 48BE-                      mov  rsi,  message                    ;message 64 Bit Register
+    13 00000007 [0000000000000000] 
+    14                                  
+    15 0000000F BF01000000                 mov  rdi,  0x1                        ;file descriptor (stdout) 64 Bit Register
+    16                                  
+    17 00000014 B801000000                 mov  rax,  0x1                        ;system call number (sys_write) 64 Bit Register
+    18                                  
+    19 00000019 0F05                       syscall                                ;call kernel 64 bit System
+    20                                  
+    21 0000001B B83C000000                 mov  rax,  0x3c                       ;system call number (sys_exit) 64 Bit Register
+    22                                  
+    23 00000020 BF00000000                 mov   rdi,  0x0                        ;return status 64 Bit Register
+    24                                  
+    25 00000025 0F05                       syscall                                ;call kernel 64 bit System
+    26                                  
+    27                                  ; DATA SECTION
+    28                                  section .data
+    29                                  
+    30 00000000 417373656D626C7920-     message db 'Assembly and C', 0xA          ;string to be printed
+    30 00000009 616E6420430A       
+    31                                  msg_length equ $-message                  ;length of the string

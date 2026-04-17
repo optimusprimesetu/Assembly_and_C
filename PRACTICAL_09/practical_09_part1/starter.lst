@@ -1,0 +1,31 @@
+     1                                  ; Filename practical_09_part1.asm
+     2                                  
+     3                                  ; Registers used: edx, ecx, ebx, eax (32 bit)
+     4                                  
+     5                                  ; GLOBALS
+     6                                  global _start ;Declared for linker this is declaring _start (entry point)
+     7                                  
+     8                                  ; TEXT SECTION
+     9                                  section .text
+    10                                  _start:                                  ;linker entry point
+    11 00000000 BA0F000000                 mov  edx,  msg_length                 ;message length see length equ 32 Bit Register
+    12 00000005 B9[00000000]               mov  ecx,  message                    ;message 32 Bit Register
+    13                                  
+    14 0000000A BB01000000                 mov  ebx,  0x1                        ;file descriptor (stdout) 32 Bit Register
+    15                                     
+    16 0000000F B804000000                 mov  eax,  0x4                        ;system call number (sys_write) 32 Bit Register
+    17                                  
+    18 00000014 CD80                       int  0x80                             ;call kernel 32 bit System
+    19                                  
+    20 00000016 B801000000                 mov  eax,  0x1                        ;system call number (sys_exit) 32 Bit Register
+    21                                  
+    22 0000001B BB00000000                 mov   ebx,  0x0                        ;return status 32 Bit Register
+    23                                  
+    24 00000020 CD80                       int  0x80                             ;call kernel, system call 32 bit System
+    25                                  
+    26                                  ; DATA SECTION
+    27                                  section .data
+    28                                  
+    29 00000000 417373656D626C7920-     message db 'Assembly and C', 0xA          ;string to be printed
+    29 00000009 616E6420430A       
+    30                                  msg_length equ $-message                  ;length of the string
